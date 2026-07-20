@@ -1,0 +1,8 @@
+import SwiftUI
+
+struct CardDetailView: View {
+    @Environment(\.managedObjectContext) private var context; @ObservedObject var item: DeckCardEntity; @ObservedObject var model: GameViewModel
+    var body: some View {
+        ScrollView { VStack(alignment: .leading, spacing: 18) { AsyncImage(url: item.card.imageURL.flatMap(URL.init)) { image in image.resizable().scaledToFit() } placeholder: { RoundedRectangle(cornerRadius: 14).fill(.secondary.opacity(0.15)).aspectRatio(0.716, contentMode: .fit).overlay { ProgressView() } }.clipShape(RoundedRectangle(cornerRadius: 14)).shadow(radius: 6); VStack(alignment: .leading, spacing: 10) { HStack { Text(item.card.name).font(.title2.bold()); Spacer(); Text(item.card.manaCost ?? "") }; Text(item.card.typeLine).font(.headline).foregroundStyle(.secondary); if let rules = item.card.oracleText { Text(rules) }; if let power = item.card.power, let toughness = item.card.toughness { Text("\(power) / \(toughness)").font(.title3.bold()) }; LabeledContent("Color identity", value: item.card.colorIdentity?.isEmpty == false ? item.card.colorIdentity! : "Colorless") }; Menu("Move from \(item.zone.title)") { ForEach(Zone.allCases, id: \.self) { zone in Button(zone.title) { model.move(item, to: zone, context: context) } } }.buttonStyle(.borderedProminent).frame(maxWidth: .infinity) }.padding() }.navigationTitle(item.card.name).navigationBarTitleDisplayMode(.inline)
+    }
+}
