@@ -32,6 +32,7 @@ final class CardEntity: NSManagedObject, Identifiable {
     @NSManaged var typeLine: String
     @NSManaged var oracleText: String?
     @NSManaged var imageURL: String?
+    @NSManaged var imageData: Data?
     @NSManaged var colors: String?
     @NSManaged var colorIdentity: String?
     @NSManaged var rarity: String?
@@ -40,7 +41,8 @@ final class CardEntity: NSManagedObject, Identifiable {
     @NSManaged var deckCards: Set<DeckCardEntity>
 
     var kinds: Set<CardKind> {
-        Set(CardKind.allCases.filter { typeLine.localizedCaseInsensitiveContains($0.rawValue) })
+        let words = Set(typeLine.components(separatedBy: "—")[0].lowercased().split(separator: " ").map(String.init))
+        return Set(CardKind.allCases.filter { words.contains($0.rawValue.lowercased()) || ($0 == .tribal && words.contains("kindred")) })
     }
 }
 

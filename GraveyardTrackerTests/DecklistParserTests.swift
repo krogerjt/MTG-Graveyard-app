@@ -9,4 +9,5 @@ final class DecklistParserTests: XCTestCase {
         XCTAssertEqual(try DecklistParser.parse("1 Sol Ring (CMM) 396"), [ParsedCard(quantity: 1, name: "Sol Ring")])
     }
     func testRejectsMalformedLine() { XCTAssertThrowsError(try DecklistParser.parse("Sol Ring")) }
+    func testRejectsUnboundedQuantity() { XCTAssertThrowsError(try DecklistParser.parse("999999999 Island")) }
 }

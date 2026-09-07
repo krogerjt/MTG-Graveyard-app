@@ -17,7 +17,7 @@ struct GraveyardView: View {
 
 struct CardRow: View {
     @ObservedObject var item: DeckCardEntity
-    var body: some View { HStack(spacing: 12) { AsyncImage(url: item.card.imageURL.flatMap(URL.init)) { image in image.resizable().scaledToFill() } placeholder: { Color.secondary.opacity(0.15).overlay { Image(systemName: "photo") } }.frame(width: 48, height: 67).clipShape(RoundedRectangle(cornerRadius: 4)); VStack(alignment: .leading, spacing: 3) { Text(item.card.name).font(.headline); Text(item.card.typeLine).font(.caption).foregroundStyle(.secondary).lineLimit(1) }; Spacer(); Text(item.card.manaValue.formatted()).font(.caption.monospacedDigit()).padding(6).background(.thinMaterial, in: Circle()) } }
+    var body: some View { HStack(spacing: 12) { CardArtwork(card: item.card).frame(width: 48, height: 67).clipShape(RoundedRectangle(cornerRadius: 4)); VStack(alignment: .leading, spacing: 3) { Text(item.card.name).font(.headline); Text(item.card.typeLine).font(.caption).foregroundStyle(.secondary).lineLimit(1) }; Spacer(); Text(item.card.manaValue.formatted()).font(.caption.monospacedDigit()).padding(6).background(.thinMaterial, in: Circle()) } }
 }
 
 private struct DeliriumBanner: View {

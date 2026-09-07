@@ -1,18 +1,29 @@
 import CoreData
+import Combine
 
-final class PersistenceController {
+final class PersistenceController: ObservableObject {
     static let shared = PersistenceController()
     let container: NSPersistentContainer
+    @Published private(set) var storeError: String?
+    @Published private(set) var isReady = false
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "GraveyardTracker", managedObjectModel: Self.model)
         if inMemory { container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null") }
         container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-        container.loadPersistentStores { _, error in
-            if let error { assertionFailure("Core Data store failed: \(error.localizedDescription)") }
-        }
+        loadStore()
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+    }
+
+    func loadStore() {
+        storeError = nil
+        container.loadPersistentStores { [weak self] _, error in
+            DispatchQueue.main.async {
+                self?.storeError = error?.localizedDescription
+                self?.isReady = error == nil
+            }
+        }
     }
 
     static let model: NSManagedObjectModel = {
@@ -23,6 +34,9 @@ final class PersistenceController {
 
         deck.properties = [attribute("id", .UUIDAttributeType), attribute("name", .stringAttributeType), optional("commander", .stringAttributeType), optional("colorIdentity", .stringAttributeType), optional("artworkURL", .stringAttributeType), attribute("createdDate", .dateAttributeType), attribute("updatedDate", .dateAttributeType)]
         card.properties = [attribute("id", .UUIDAttributeType), attribute("scryfallID", .stringAttributeType), attribute("name", .stringAttributeType), optional("manaCost", .stringAttributeType), attribute("manaValue", .doubleAttributeType), attribute("typeLine", .stringAttributeType), optional("oracleText", .stringAttributeType), optional("imageURL", .stringAttributeType), optional("colors", .stringAttributeType), optional("colorIdentity", .stringAttributeType), optional("rarity", .stringAttributeType), optional("power", .stringAttributeType), optional("toughness", .stringAttributeType)]
+        let imageData = optional("imageData", .binaryDataAttributeType)
+        imageData.allowsExternalBinaryDataStorage = true
+        card.properties.append(imageData)
         deckCard.properties = [attribute("id", .UUIDAttributeType), attribute("zoneRaw", .stringAttributeType), attribute("zoneChangedAt", .dateAttributeType)]
 
         let deckToCards = NSRelationshipDescription(); deckToCards.name = "cards"; deckToCards.destinationEntity = deckCard; deckToCards.minCount = 0; deckToCards.maxCount = 0; deckToCards.deleteRule = .cascadeDeleteRule; deckToCards.isOptional = true; deckToCards.isOrdered = false

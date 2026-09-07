@@ -2,12 +2,23 @@ import SwiftUI
 
 @main
 struct GraveyardTrackerApp: App {
-    private let persistence = PersistenceController.shared
+    @StateObject private var persistence = PersistenceController.shared
 
     var body: some Scene {
         WindowGroup {
-            DeckListView()
-                .environment(\.managedObjectContext, persistence.container.viewContext)
+            Group {
+                if persistence.isReady {
+                    DeckListView()
+                        .environment(\.managedObjectContext, persistence.container.viewContext)
+                } else if let error = persistence.storeError {
+                    VStack(spacing: 16) {
+                        Text("Could not open saved decks").font(.headline)
+                        Text(error).font(.caption)
+                        Text("Your saved files have not been deleted.")
+                        Button("Retry") { persistence.loadStore() }
+                    }.padding()
+                } else { ProgressView("Opening decks…") }
+            }
         }
     }
 }

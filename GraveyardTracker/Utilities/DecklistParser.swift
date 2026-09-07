@@ -9,7 +9,7 @@ enum DecklistParser {
         return try lines.map { line in
             let clean = line.replacingOccurrences(of: #"\s*\[[^]]+\]\s*$"#, with: "", options: .regularExpression).replacingOccurrences(of: #"\s+\([^)]*\)\s*\d*\s*$"#, with: "", options: .regularExpression)
             let parts = clean.split(maxSplits: 1, whereSeparator: { $0.isWhitespace })
-            guard parts.count == 2, let quantity = Int(parts[0]), quantity > 0 else { throw ImportError.invalidLine(line) }
+            guard parts.count == 2, let quantity = Int(parts[0]), quantity > 0, quantity <= 250 else { throw ImportError.invalidLine(line) }
             return ParsedCard(quantity: quantity, name: String(parts[1]).trimmingCharacters(in: .whitespaces))
         }
     }
