@@ -13,6 +13,8 @@ final class PersistenceControllerTests: XCTestCase {
 
         XCTAssertFalse(persistence.isReady)
         XCTAssertNil(persistence.storeError)
+        XCTAssertTrue(persistence.isLoading)
+        XCTAssertFalse(persistence.isRetrying)
         XCTAssertEqual(completions.count, 1)
 
         let ready = expectation(description: "store becomes ready")

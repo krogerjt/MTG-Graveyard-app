@@ -8,6 +8,8 @@ final class PersistenceController: ObservableObject {
     private(set) var container: NSPersistentContainer
     @Published private(set) var storeError: String?
     @Published private(set) var isReady = false
+    @Published private(set) var isLoading = false
+    @Published private(set) var isRetrying = false
 
     private let inMemory: Bool
     private let storeLoader: StoreLoader
@@ -41,6 +43,8 @@ final class PersistenceController: ObservableObject {
         let begin = { [weak self] in
             guard let self else { return }
             self.storeError = nil
+            self.isRetrying = self.hasAttemptedLoad
+            self.isLoading = true
             self.isReady = false
             if self.hasAttemptedLoad {
                 self.container = Self.makeContainer(inMemory: self.inMemory)
@@ -56,6 +60,8 @@ final class PersistenceController: ObservableObject {
                         return
                     }
                     self.loadInProgress = false
+                    self.isLoading = false
+                    self.isRetrying = false
                     self.loadStateLock.unlock()
 
                     self.storeError = error?.localizedDescription

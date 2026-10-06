@@ -10,14 +10,19 @@ struct GraveyardTrackerApp: App {
                 if persistence.isReady {
                     DeckListView()
                         .environment(\.managedObjectContext, persistence.container.viewContext)
-                } else if let error = persistence.storeError {
-                    VStack(spacing: 16) {
-                        Text("Could not open saved decks").font(.headline)
-                        Text(error).font(.caption)
-                        Text("Your saved files have not been deleted.")
-                        Button("Retry") { persistence.loadStore() }
-                    }.padding()
-                } else { ProgressView("Opening decks…") }
+                } else if persistence.storeError != nil || persistence.isRetrying {
+                    StoreUnavailableView(error: persistence.storeError, isRetrying: persistence.isRetrying) {
+                        persistence.loadStore()
+                    }
+
+
+
+
+
+                } else {
+                    ProgressView("Opening saved decks…")
+                        .accessibilityLabel("Opening saved decks")
+                }
             }
         }
     }
