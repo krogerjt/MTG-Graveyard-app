@@ -33,7 +33,8 @@ final class ImportDeckViewModel: ObservableObject {
             let collection = try await cardLookup.cards(named: uniqueNames)
             var lookup = collection.found
             for (index, cardName) in collection.missing.enumerated() {
-                do { lookup[cardName.lowercased()] = try await cardLookup.card(named: cardName) } catch { failures.append(cardName) }
+                do { lookup[cardName.lowercased()] = try await cardLookup.card(named: cardName) }
+                catch ImportError.notFound(_) { failures.append(cardName) }
                 progress = 0.4 * Double(index + 1) / Double(max(collection.missing.count, 1))
             }
             let cards = expanded.compactMap { lookup[$0.lowercased()] }

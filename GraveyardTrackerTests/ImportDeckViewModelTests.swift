@@ -147,6 +147,48 @@ final class ImportDeckViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testNetworkFailureDoesNotReplaceDeckOrLookLikeMissingCard() async throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        let existing = try makeSavedDeck(in: context)
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [FixtureProtocol.self]
+        let client = ScryfallClient(session: URLSession(configuration: configuration))
+        let model = ImportDeckViewModel(cardLookup: client, artworkService: client)
+        model.name = "Replacement"
+        model.decklist = "1 HTTP Failure"
+
+        let imported = await model.importDeck(into: context, replacing: existing)
+
+        XCTAssertFalse(imported)
+        XCTAssertTrue(model.errorMessage?.contains("HTTP 503") == true, model.errorMessage ?? "Expected a server error message")
+        XCTAssertFalse(model.errorMessage?.contains("Correct the card names") == true)
+        XCTAssertTrue(model.failures.isEmpty, "A server failure must not be classified as a missing card")
+        try assertSeedDeckIsUnchanged(in: context)
+    }
+
+    @MainActor
+    func testFallbackTransportFailureSurfacesAndDoesNotPartiallyReplaceDeck() async throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        let existing = try makeSavedDeck(in: context)
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [FixtureProtocol.self]
+        let client = ScryfallClient(session: URLSession(configuration: configuration))
+        let model = ImportDeckViewModel(cardLookup: client, artworkService: client)
+        model.name = "Replacement"
+        model.decklist = "1 Front // Back\n1 Fallback Transport Failure"
+
+        let imported = await model.importDeck(into: context, replacing: existing)
+
+        XCTAssertFalse(imported)
+        XCTAssertEqual(model.errorMessage, URLError(.notConnectedToInternet).localizedDescription)
+        XCTAssertTrue(model.failures.isEmpty, "A transport failure must not be classified as a missing card")
+        XCTAssertFalse(model.errorMessage?.contains("Correct the card names") == true)
+        try assertSeedDeckIsUnchanged(in: context)
+    }
+
+    @MainActor
     func testArtworkDownloadFailureDoesNotReplaceOrPartiallySaveDeck() async throws {
         let persistence = PersistenceController(inMemory: true)
         let context = persistence.container.viewContext
@@ -259,7 +301,8 @@ private struct FakeCardLookupService: CardLookupService {
     }
 
     func card(named name: String) async throws -> ScryfallCard {
-        guard !individualLookupFails, let card = found[name.lowercased()] else {
+        if individualLookupFails { throw ImportError.notFound(name) }
+        guard let card = found[name.lowercased()] else {
             throw FixtureServiceError.expectedFailure
         }
         return card

@@ -45,7 +45,8 @@ actor ScryfallClient: CardLookupService, ArtworkService {
             request.httpMethod = "POST"; request.setValue("application/json", forHTTPHeaderField: "Content-Type"); request.setValue("GraveyardTracker/1.0", forHTTPHeaderField: "User-Agent")
             request.httpBody = try JSONEncoder().encode(CollectionRequest(identifiers: chunk.map { Identifier(name: $0) }))
             let (data, response) = try await session.data(for: request)
-            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { throw URLError(.badServerResponse) }
+            guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+            guard http.statusCode == 200 else { throw ImportError.httpFailure(http.statusCode) }
             let collection = try JSONDecoder().decode(CollectionResponse.self, from: data)
             for requested in chunk {
                 if let card = collection.data.first(where: { $0.name.caseInsensitiveCompare(requested) == .orderedSame || $0.cardFaces?.contains(where: { $0.name.caseInsensitiveCompare(requested) == .orderedSame }) == true }) {
@@ -64,14 +65,20 @@ actor ScryfallClient: CardLookupService, ArtworkService {
         components.queryItems = [URLQueryItem(name: "fuzzy", value: name)]
         var request = URLRequest(url: components.url!); request.setValue("GraveyardTracker/1.0", forHTTPHeaderField: "User-Agent"); request.timeoutInterval = 15
         let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { throw ImportError.notFound(name) }
+        guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        guard http.statusCode == 200 else {
+            if http.statusCode == 404 { throw ImportError.notFound(name) }
+            throw ImportError.httpFailure(http.statusCode)
+        }
         return try JSONDecoder().decode(ScryfallCard.self, from: data)
     }
 
     func artwork(at url: String) async throws -> Data {
         guard let url = URL(string: url) else { throw URLError(.badURL) }
         let (data, response) = try await session.data(from: url)
-        guard let response = response as? HTTPURLResponse, response.statusCode == 200,
+        guard let response = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        guard response.statusCode == 200 else { throw ImportError.httpFailure(response.statusCode) }
+        guard
               response.mimeType?.hasPrefix("image/") == true else { throw URLError(.badServerResponse) }
         return data
     }
@@ -82,8 +89,8 @@ private struct CollectionRequest: Encodable { let identifiers: [Identifier] }
 private struct CollectionResponse: Decodable { let data: [ScryfallCard]; let notFound: [Identifier]; enum CodingKeys: String, CodingKey { case data; case notFound = "not_found" } }
 
 enum ImportError: LocalizedError {
-    case emptyDecklist, invalidLine(String), notFound(String)
+    case emptyDecklist, invalidLine(String), notFound(String), httpFailure(Int)
     var errorDescription: String? {
-        switch self { case .emptyDecklist: "Paste at least one card."; case .invalidLine(let line): "Could not parse: \(line)"; case .notFound(let name): "Scryfall could not find \(name)." }
+        switch self { case .emptyDecklist: "Paste at least one card."; case .invalidLine(let line): "Could not parse: \(line)"; case .notFound(let name): "Scryfall could not find \(name)."; case .httpFailure(let statusCode): "Scryfall returned a server error (HTTP \(statusCode)). Please try again." }
     }
 }
