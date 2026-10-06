@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Opaque midnight-green field; iOS applies the app-icon mask. -->
+  <rect width="1024" height="1024" fill="#14252A"/>
+  <circle cx="512" cy="462" r="365" fill="#1D3434"/>
+  <circle cx="512" cy="462" r="305" fill="none" stroke="#315044" stroke-width="8"/>
+
+  <!-- Quiet moon and distant stars establish the graveyard setting. -->
+  <path d="M790 164a83 83 0 1 0 74 130 96 96 0 0 1-74-130Z" fill="#EACB83"/>
+  <circle cx="255" cy="236" r="10" fill="#EACB83"/>
+  <circle cx="333" cy="157" r="7" fill="#AFC3A0"/>
+  <circle cx="717" cy="328" r="8" fill="#AFC3A0"/>
+
+  <!-- A small stack of blank trading cards, with no borrowed card art. -->
+  <g transform="rotate(-13 348 558)">
+    <rect x="195" y="349" width="270" height="390" rx="28" fill="#A6534A" stroke="#EACB83" stroke-width="12"/>
+    <rect x="224" y="377" width="212" height="334" rx="16" fill="#713E42" stroke="#D59A67" stroke-width="7"/>
+    <path d="M330 454c-25 0-42 19-42 43 0 20 13 37 31 42v75h22v-75c18-5 31-22 31-42 0-24-17-43-42-43Z" fill="#EACB83"/>
+  </g>
+  <g transform="rotate(8 453 589)">
+    <rect x="323" y="400" width="258" height="368" rx="27" fill="#D9C596" stroke="#F1E5C5" stroke-width="12"/>
+    <rect x="350" y="427" width="204" height="314" rx="15" fill="#253D3A" stroke="#A98D58" stroke-width="7"/>
+    <path d="M452 486l57 66-57 66-57-66 57-66Z" fill="#EACB83"/>
+    <path d="M452 508l37 44-37 44-37-44 37-44Z" fill="#253D3A"/>
+  </g>
+
+  <!-- Bold, simple headstone: the primary silhouette at small sizes. -->
+  <path d="M522 443c0-104 72-181 166-181s166 77 166 181v325H522V443Z" fill="#D9D1B4" stroke="#F1E5C5" stroke-width="14"/>
+  <path d="M548 446c0-84 58-146 140-146s140 62 140 146v294H548V446Z" fill="#C6C3A8"/>
+  <path d="M688 376v132M632 442h112" fill="none" stroke="#315044" stroke-width="25" stroke-linecap="round"/>
+  <path d="M624 568h128M642 610h92" fill="none" stroke="#7F8B75" stroke-width="12" stroke-linecap="round"/>
+  <path d="M587 740h202" stroke="#EACB83" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Ground and layered stone footing anchor the two motifs together. -->
+  <path d="M104 788c116-48 209-45 312-8 85 31 145 33 238 2 94-31 174-35 266 5v102H104V788Z" fill="#203A35"/>
+  <rect x="468" y="752" width="438" height="72" rx="18" fill="#AFAF95" stroke="#EACB83" stroke-width="12"/>
+  <rect x="431" y="814" width="510" height="71" rx="18" fill="#758675" stroke="#D9D1B4" stroke-width="10"/>
+</svg>
