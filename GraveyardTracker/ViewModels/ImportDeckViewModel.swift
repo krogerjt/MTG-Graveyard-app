@@ -7,7 +7,19 @@ final class ImportDeckViewModel: ObservableObject {
     @Published var name = ""; @Published var commander = ""; @Published var decklist = ""
     @Published private(set) var isImporting = false; @Published private(set) var progress = 0.0
     @Published var failures: [String] = []; @Published var errorMessage: String?
-    private let client = ScryfallClient()
+    private let cardLookup: any CardLookupService
+    private let artworkService: any ArtworkService
+
+    init() {
+        let client = ScryfallClient()
+        self.cardLookup = client
+        self.artworkService = client
+    }
+
+    init(cardLookup: any CardLookupService, artworkService: any ArtworkService) {
+        self.cardLookup = cardLookup
+        self.artworkService = artworkService
+    }
 
     func importDeck(into context: NSManagedObjectContext, replacing existing: DeckEntity? = nil) async -> Bool {
         isImporting = true; progress = 0; failures = []; errorMessage = nil
@@ -16,10 +28,10 @@ final class ImportDeckViewModel: ObservableObject {
             let parsed = try DecklistParser.parse(decklist)
             guard parsed.reduce(0, { $0 + $1.quantity }) <= 250 else { errorMessage = "Import at most 250 cards at a time."; return false }
             let expanded = parsed.flatMap { item in Array(repeating: item.name, count: item.quantity) }
-            let collection = try await client.cards(named: expanded)
+            let collection = try await cardLookup.cards(named: expanded)
             var lookup = collection.found
             for (index, cardName) in collection.missing.enumerated() {
-                do { lookup[cardName.lowercased()] = try await client.card(named: cardName) } catch { failures.append(cardName) }
+                do { lookup[cardName.lowercased()] = try await cardLookup.card(named: cardName) } catch { failures.append(cardName) }
                 progress = 0.4 * Double(index + 1) / Double(max(collection.missing.count, 1))
             }
             let cards = expanded.compactMap { lookup[$0.lowercased()] }
@@ -34,7 +46,7 @@ final class ImportDeckViewModel: ObservableObject {
                 if let cached = cachedCard(scryfallID: result.id, context: context)?.imageData {
                     images[result.id] = cached
                 } else if let url = result.displayImageURL {
-                    images[result.id] = try await client.artwork(at: url)
+                    images[result.id] = try await artworkService.artwork(at: url)
                 }
                 progress = 0.4 + 0.6 * Double(images.count) / Double(Set(cards.map(\.id)).count)
             }

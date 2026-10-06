@@ -21,7 +21,16 @@ struct ScryfallCard: Decodable, Sendable {
     enum CodingKeys: String, CodingKey { case id, name, cmc, colors, rarity, power, toughness; case manaCost = "mana_cost"; case typeLine = "type_line"; case oracleText = "oracle_text"; case colorIdentity = "color_identity"; case imageUris = "image_uris"; case cardFaces = "card_faces" }
 }
 
-actor ScryfallClient {
+protocol CardLookupService: Sendable {
+    func cards(named names: [String]) async throws -> (found: [String: ScryfallCard], missing: [String])
+    func card(named name: String) async throws -> ScryfallCard
+}
+
+protocol ArtworkService: Sendable {
+    func artwork(at url: String) async throws -> Data
+}
+
+actor ScryfallClient: CardLookupService, ArtworkService {
     private let session: URLSession
     init(session: URLSession = .shared) { self.session = session }
 
