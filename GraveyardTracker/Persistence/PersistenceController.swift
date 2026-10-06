@@ -2,28 +2,82 @@ import CoreData
 import Combine
 
 final class PersistenceController: ObservableObject {
+    typealias StoreLoader = (NSPersistentContainer, @escaping (Error?) -> Void) -> Void
+
     static let shared = PersistenceController()
-    let container: NSPersistentContainer
+    private(set) var container: NSPersistentContainer
     @Published private(set) var storeError: String?
     @Published private(set) var isReady = false
 
-    init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "GraveyardTracker", managedObjectModel: Self.model)
-        if inMemory { container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null") }
-        container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+    private let inMemory: Bool
+    private let storeLoader: StoreLoader
+    private let loadStateLock = NSLock()
+    private var loadInProgress = false
+    private var activeAttempt = 0
+    private var hasAttemptedLoad = false
+
+    init(inMemory: Bool = false, storeLoader: StoreLoader? = nil) {
+        self.inMemory = inMemory
+        self.storeLoader = storeLoader ?? { container, completion in
+            container.loadPersistentStores { _, error in completion(error) }
+        }
+        container = Self.makeContainer(inMemory: inMemory)
         loadStore()
-        container.viewContext.automaticallyMergesChangesFromParent = true
-        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
 
+    /// Starts at most one load at a time. A retry gets a new container so a
+    /// coordinator left in a partial state by Core Data is never reused.
     func loadStore() {
-        storeError = nil
-        container.loadPersistentStores { [weak self] _, error in
-            DispatchQueue.main.async {
-                self?.storeError = error?.localizedDescription
-                self?.isReady = error == nil
+        loadStateLock.lock()
+        guard !loadInProgress else {
+            loadStateLock.unlock()
+            return
+        }
+        loadInProgress = true
+        activeAttempt += 1
+        let attempt = activeAttempt
+        loadStateLock.unlock()
+
+        let begin = { [weak self] in
+            guard let self else { return }
+            self.storeError = nil
+            self.isReady = false
+            if self.hasAttemptedLoad {
+                self.container = Self.makeContainer(inMemory: self.inMemory)
+            }
+            self.hasAttemptedLoad = true
+
+            self.storeLoader(self.container) { [weak self] error in
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    self.loadStateLock.lock()
+                    guard self.loadInProgress, self.activeAttempt == attempt else {
+                        self.loadStateLock.unlock()
+                        return
+                    }
+                    self.loadInProgress = false
+                    self.loadStateLock.unlock()
+
+                    self.storeError = error?.localizedDescription
+                    self.isReady = error == nil
+                }
             }
         }
+
+        if Thread.isMainThread {
+            begin()
+        } else {
+            DispatchQueue.main.async(execute: begin)
+        }
+    }
+
+    private static func makeContainer(inMemory: Bool) -> NSPersistentContainer {
+        let container = NSPersistentContainer(name: "GraveyardTracker", managedObjectModel: model)
+        if inMemory { container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null") }
+        container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        return container
     }
 
     static let model: NSManagedObjectModel = {
