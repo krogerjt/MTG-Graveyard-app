@@ -32,6 +32,97 @@ final class ImportDeckViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testImportAtCardLimitKeepsCopiesButPersistsOneCardRecord() async throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        let card = fixtureCard(id: "sol-ring", name: "Sol Ring")
+        let probe = ImportServiceProbe()
+        let model = ImportDeckViewModel(
+            cardLookup: FakeCardLookupService(found: ["sol ring": card], probe: probe),
+            artworkService: FakeArtworkService(data: Data([1]), probe: probe)
+        )
+        model.decklist = "250 Sol Ring"
+
+        let imported = await model.importDeck(into: context)
+
+        XCTAssertTrue(imported, model.errorMessage ?? "Import should succeed")
+        let cards = try context.fetch(NSFetchRequest<CardEntity>(entityName: "CardEntity"))
+        let deckCards = try context.fetch(NSFetchRequest<DeckCardEntity>(entityName: "DeckCardEntity"))
+        XCTAssertEqual(cards.count, 1, "Duplicate copies should share one persisted card record")
+        XCTAssertEqual(deckCards.count, 250)
+        XCTAssertEqual(probe.batchLookupCalls, 1)
+        XCTAssertEqual(probe.requestedNameCount, 1, "Repeated copies should be looked up once")
+        XCTAssertEqual(probe.artworkRequests, 1, "Repeated copies should download artwork once")
+        XCTAssertTrue(deckCards.allSatisfy { $0.card == cards[0] })
+        XCTAssertTrue(deckCards.allSatisfy { $0.zone == .library })
+    }
+
+    @MainActor
+    func testImportAtCardLimitPerformance() async throws {
+        let runs = 5
+        var elapsed = 0.0
+        for _ in 0..<runs {
+            let persistence = PersistenceController(inMemory: true)
+            let context = persistence.container.viewContext
+            let card = fixtureCard(id: "sol-ring", name: "Sol Ring")
+            let probe = ImportServiceProbe()
+            let model = ImportDeckViewModel(
+                cardLookup: FakeCardLookupService(found: ["sol ring": card], probe: probe),
+                artworkService: FakeArtworkService(data: Data([1]), probe: probe)
+            )
+            model.decklist = "250 Sol Ring"
+
+            let start = ProcessInfo.processInfo.systemUptime
+            let imported = await model.importDeck(into: context)
+            elapsed += ProcessInfo.processInfo.systemUptime - start
+
+            XCTAssertTrue(imported, model.errorMessage ?? "Import should succeed")
+            let cards = try context.fetch(NSFetchRequest<CardEntity>(entityName: "CardEntity"))
+            let deckCards = try context.fetch(NSFetchRequest<DeckCardEntity>(entityName: "DeckCardEntity"))
+            XCTAssertEqual(cards.count, 1)
+            XCTAssertEqual(deckCards.count, 250)
+            XCTAssertEqual(probe.requestedNameCount, 1)
+            XCTAssertEqual(probe.artworkRequests, 1)
+        }
+        XCTContext.runActivity(named: "250-card import performance") { activity in
+            activity.add(XCTAttachment(string: "Average duration: \(elapsed / Double(runs)) seconds across \(runs) in-memory imports"))
+        }
+    }
+
+    @MainActor
+    func testImportReusesCachedCardRecordAndArtwork() async throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        let cachedImage = Data([9, 8, 7])
+        let cached = CardEntity(context: context)
+        cached.id = UUID()
+        cached.scryfallID = "sol-ring"
+        cached.name = "Sol Ring"
+        cached.typeLine = "Artifact"
+        cached.imageData = cachedImage
+        cached.manaValue = 1
+        try context.save()
+
+        let probe = ImportServiceProbe()
+        let model = ImportDeckViewModel(
+            cardLookup: FakeCardLookupService(found: ["sol ring": fixtureCard(id: "sol-ring", name: "Sol Ring")]),
+            artworkService: FakeArtworkService(data: Data([1]), probe: probe)
+        )
+        model.decklist = "2 Sol Ring"
+
+        let imported = await model.importDeck(into: context)
+
+        XCTAssertTrue(imported, model.errorMessage ?? "Import should succeed")
+        let cards = try context.fetch(NSFetchRequest<CardEntity>(entityName: "CardEntity"))
+        let deckCards = try context.fetch(NSFetchRequest<DeckCardEntity>(entityName: "DeckCardEntity"))
+        XCTAssertEqual(cards.count, 1)
+        XCTAssertEqual(deckCards.count, 2)
+        XCTAssertTrue(deckCards.allSatisfy { $0.card.objectID == cached.objectID })
+        XCTAssertEqual(cached.imageData, cachedImage)
+        XCTAssertEqual(probe.artworkRequests, 0, "Cached artwork should avoid another download")
+    }
+
+    @MainActor
     func testMissingCardLookupDoesNotReplaceOrPartiallySaveDeck() async throws {
         let persistence = PersistenceController(inMemory: true)
         let context = persistence.container.viewContext
@@ -134,13 +225,37 @@ final class ImportDeckViewModelTests: XCTestCase {
     }
 }
 
+private final class ImportServiceProbe: @unchecked Sendable {
+    private let lock = NSLock()
+    private var batchLookups = 0
+    private var requestedNames = 0
+    private var artworkDownloads = 0
+
+    var batchLookupCalls: Int { lock.lock(); defer { lock.unlock() }; return batchLookups }
+    var requestedNameCount: Int { lock.lock(); defer { lock.unlock() }; return requestedNames }
+    var artworkRequests: Int { lock.lock(); defer { lock.unlock() }; return artworkDownloads }
+
+    func recordBatchLookup(nameCount: Int) {
+        lock.lock(); defer { lock.unlock() }
+        batchLookups += 1
+        requestedNames += nameCount
+    }
+
+    func recordArtworkRequest() {
+        lock.lock(); defer { lock.unlock() }
+        artworkDownloads += 1
+    }
+}
+
 private struct FakeCardLookupService: CardLookupService {
     let found: [String: ScryfallCard]
     var missing: [String] = []
     var individualLookupFails = false
+    var probe: ImportServiceProbe? = nil
 
     func cards(named names: [String]) async throws -> (found: [String: ScryfallCard], missing: [String]) {
-        (found, missing)
+        probe?.recordBatchLookup(nameCount: names.count)
+        return (found, missing)
     }
 
     func card(named name: String) async throws -> ScryfallCard {
@@ -154,8 +269,10 @@ private struct FakeCardLookupService: CardLookupService {
 private struct FakeArtworkService: ArtworkService {
     var data = Data()
     var shouldFail = false
+    var probe: ImportServiceProbe? = nil
 
     func artwork(at url: String) async throws -> Data {
+        probe?.recordArtworkRequest()
         guard !shouldFail else { throw FixtureServiceError.expectedFailure }
         return data
     }

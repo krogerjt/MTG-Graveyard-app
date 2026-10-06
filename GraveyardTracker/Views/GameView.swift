@@ -26,7 +26,7 @@ struct GameView: View {
         List {
             Section { zoneSummary }
             Section("All cards · tap to toggle graveyard") {
-                ForEach(model.deck.sortedCards) { item in
+                ForEach(model.allCards) { item in
                     HStack {
                         Button { model.toggle(item, context: context) } label: {
                             VStack(alignment: .leading) {
