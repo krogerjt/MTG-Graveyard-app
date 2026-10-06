@@ -35,3 +35,12 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.graveyardtracker.tests
         GENERATE_INFOPLIST_FILE: YES
+schemes:
+  GraveyardTracker:
+    build:
+      targets:
+        GraveyardTracker: all
+    test:
+      config: Debug
+      targets:
+        - GraveyardTrackerTests

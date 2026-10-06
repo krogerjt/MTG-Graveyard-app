@@ -1,0 +1,54 @@
+name: iOS CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Select an available iPhone simulator
+        id: simulator
+        run: |
+          SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          candidates = [device for runtime in devices.values() for device in runtime
+                        if device["name"].startswith("iPhone") and device["isAvailable"]]
+          if not candidates:
+              raise SystemExit("No available iPhone Simulator device found")
+          print(candidates[0]["udid"])
+          ')
+          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Verify generated scheme
+        run: xcodebuild -list -project GraveyardTracker.xcodeproj
+
+      - name: Build app and unit tests
+        run: >-
+          xcodebuild build-for-testing
+          -project GraveyardTracker.xcodeproj
+          -scheme GraveyardTracker
+          -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}"
+          -derivedDataPath build/DerivedData
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Run unit tests
+        run: >-
+          xcodebuild test-without-building
+          -project GraveyardTracker.xcodeproj
+          -scheme GraveyardTracker
+          -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}"
+          -derivedDataPath build/DerivedData
+          CODE_SIGNING_ALLOWED=NO
