@@ -17,6 +17,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.graveyardtracker.app
         TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Graveyard Tracker
         INFOPLIST_KEY_UILaunchScreen_Generation: true
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
@@ -37,6 +38,16 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.graveyardtracker.tests
         GENERATE_INFOPLIST_FILE: YES
+  GraveyardTrackerUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [GraveyardTrackerUITests]
+    dependencies:
+      - target: GraveyardTracker
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.graveyardtracker.uitests
+        GENERATE_INFOPLIST_FILE: YES
 schemes:
   GraveyardTracker:
     build:
@@ -46,3 +57,4 @@ schemes:
       config: Debug
       targets:
         - GraveyardTrackerTests
+        - GraveyardTrackerUITests

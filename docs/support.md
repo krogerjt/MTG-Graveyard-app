@@ -19,7 +19,7 @@ Tap **Import** on the Your Decks screen, give the deck a name, and paste your de
 Importing looks up each card online, so you need an internet connection. If any card name can't be found, the app lists the names to correct and does not save a partial deck, so fix the spelling and import again. Check that every line starts with a number, like `2 Lightning Bolt`.
 
 ### How do I move a card to the graveyard, exile or back to my library?
-Touch and hold a card in the Cards list to open its menu, then choose **Move to graveyard**, **Exile** or **Return to library**. Use **Undo** in that menu, or in the toolbar menu, to reverse your last move.
+Tap a card in the Cards list to move it to the graveyard, and tap it again to send it back. For more options, touch and hold a card to open its menu, then choose **Move to graveyard**, **Exile** or **Return to library**. Use **Undo** in that menu, or in the toolbar menu, to reverse your last move.
 
 ### How do I sort or filter my graveyard?
 Open the **Graveyard** tab and use the sort and filter button to sort by newest, name or mana value, or to show a single card type. The Delirium indicator shows how many different card types are in your graveyard.

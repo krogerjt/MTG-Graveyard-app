@@ -9,8 +9,8 @@ struct ImportDeckView: View {
         NavigationStack {
             Form {
                 if existing != nil { Section { Text("Saving deck edits replaces the card list and resets all cards to Library.") } }
-                Section("Deck") { TextField("Deck name", text: $model.name); TextField("Commander (optional)", text: $model.commander) }
-                Section("Decklist") { TextEditor(text: $model.decklist).frame(minHeight: 240).font(.system(.body, design: .monospaced)); Text("One card per line, such as “1 Sol Ring”.").font(.caption).foregroundStyle(.secondary) }
+                Section("Deck") { TextField("Deck name", text: $model.name); TextField("Commander (optional)", text: $model.commander).autocorrectionDisabled() }
+                Section("Decklist") { TextEditor(text: $model.decklist).autocorrectionDisabled().frame(minHeight: 240).font(.system(.body, design: .monospaced)); Text("One card per line, such as “1 Sol Ring”.").font(.caption).foregroundStyle(.secondary) }
                 if model.isImporting { Section { ProgressView(value: model.progress); Text("Importing cards… \(Int(model.progress * 100))%").font(.caption) } }
                 if let error = model.errorMessage { Section { Text(error).foregroundStyle(.red) } }
                 if !model.failures.isEmpty { Section("Cards not found") { ForEach(model.failures, id: \.self) { Text($0) } } }
