@@ -1,0 +1,6 @@
+- Put opaque PNG files under release/screenshots/<folder>/ using the folder names above. They must have no alpha channel and match an accepted pixel size exactly.
+- iPhone 6.9": boot an iPhone 17 Pro Max (or the largest available iPhone) simulator, run the app, and capture: xcrun simctl io booted screenshot iphone-1.png.
+- iPad 13": boot an iPad Pro 13-inch simulator and capture the same way. Only required if the app supports iPad (TARGETED_DEVICE_FAMILY includes 2).
+- For repeatable shots, write a UI test that navigates to each key screen and attaches XCUIScreen.main.screenshot(); the host's test runner exports xcresult attachments as artifacts.
+- Show real app content, not splash/login screens only. 1–10 screenshots per class. Do not include device frames unless you are comfortable maintaining them.
+- Confirm current sizes in App Store Connect → App Information; Apple changes accepted sizes with new devices.

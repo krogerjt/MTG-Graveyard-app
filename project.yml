@@ -25,6 +25,7 @@ targets:
       path: GraveyardTracker/Info.plist
       properties:
         CFBundleURLTypes: []
+        ITSAppUsesNonExemptEncryption: false
   GraveyardTrackerTests:
     type: bundle.unit-test
     platform: iOS
