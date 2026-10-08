@@ -1,0 +1,54 @@
+{
+  "templateVersion": 1,
+  "note": "Every [[REQUIRES USER INPUT] value must be written by you. The agent never invents legal text, URLs, pricing, copyright owners or Apple account details.",
+  "app": {
+    "name": "[[REQUIRES USER INPUT: App Store name, max 30 characters]]",
+    "subtitle": "[[REQUIRES USER INPUT: subtitle, max 30 characters]]",
+    "primaryCategory": "[[REQUIRES USER INPUT: App Store primary category]]",
+    "bundleId": "com.graveyardtracker.app",
+    "marketingVersion": "1.0"
+  },
+  "listing": {
+    "description": "[[REQUIRES USER INPUT: App Store description]]",
+    "keywords": "[[REQUIRES USER INPUT: keywords, comma separated, max 100 characters]]",
+    "promotionalText": "[[REQUIRES USER INPUT: promotional text (optional)]]",
+    "whatsNew": "[[REQUIRES USER INPUT: release notes for this version]]",
+    "copyright": "[[REQUIRES USER INPUT: copyright holder and year, for example '2026 Your Name or Company']]"
+  },
+  "urls": {
+    "supportUrl": "[[REQUIRES USER INPUT: public support URL (https)]]",
+    "privacyPolicyUrl": "[[REQUIRES USER INPUT: public privacy policy URL (https)]]",
+    "marketingUrl": ""
+  },
+  "pricing": {
+    "model": "[[REQUIRES USER INPUT: free, paid or in-app purchases; price tier is set in App Store Connect]]"
+  },
+  "ageRating": {
+    "note": "[[REQUIRES USER INPUT: answer the age-rating questionnaire in App Store Connect and record the result]]"
+  },
+  "review": {
+    "contact": {
+      "firstName": "[[REQUIRES USER INPUT: review contact first name]]",
+      "lastName": "[[REQUIRES USER INPUT: last name]]",
+      "email": "[[REQUIRES USER INPUT: email]]",
+      "phone": "[[REQUIRES USER INPUT: phone]]"
+    },
+    "demoAccount": {
+      "required": "[[REQUIRES USER INPUT: true or false]]",
+      "username": "",
+      "password": "(never store here; enter in App Store Connect)"
+    },
+    "notes": "[[REQUIRES USER INPUT: anything Apple's reviewer needs to use or test the app]]"
+  },
+  "exportCompliance": {
+    "usesNonExemptEncryption": "[[REQUIRES USER INPUT: true or false; see release/export-compliance.md]]"
+  },
+  "privacyNutritionLabel": {
+    "status": "unconfirmed-suggestions",
+    "detectedBehaviors": [
+      "local-storage",
+      "network"
+    ],
+    "note": "Suggestions from source scanning only. You must answer App Privacy in App Store Connect truthfully, including third-party SDK data collection."
+  }
+}
