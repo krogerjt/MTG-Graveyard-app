@@ -24,14 +24,14 @@
     "model": "free"
   },
   "ageRating": {
-    "note": "[[REQUIRES USER INPUT: answer the age-rating questionnaire in App Store Connect and record the result. Card artwork can contain fantasy violence, so answer that question yourself.]]"
+    "note": "Target age rating: 13+, matching Wizards of the Coast's guidance for Magic: The Gathering. Answer the age-rating questionnaire in App Store Connect honestly (card artwork can contain fantasy violence); the questionnaire result sets the minimum rating, and a higher rating can be chosen with the age-rating override if the computed one is lower."
   },
   "review": {
     "contact": {
       "firstName": "Jacob",
       "lastName": "Kroger",
       "email": "jakekroger@gmail.com",
-      "phone": "[[REQUIRES USER INPUT: phone number for App Review, with country code]]"
+      "phone": "+15135027321"
     },
     "demoAccount": {
       "required": "false",
