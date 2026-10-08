@@ -31,7 +31,7 @@
       "firstName": "Jacob",
       "lastName": "Kroger",
       "email": "jakekroger@gmail.com",
-      "phone": "+15135027321"
+      "phone": "(enter in App Store Connect only; deliberately not stored in this public repository)"
     },
     "demoAccount": {
       "required": "false",
