@@ -39,6 +39,10 @@ Tap **Retry** on that screen. Retrying will not delete your decks. If the proble
 ### What data does the app collect?
 None. Your decks stay on your device. See the [Privacy Policy](privacy) for details.
 
+## Notices
+
+Graveyard Tracker is unofficial and is not affiliated with or endorsed by Wizards of the Coast. Magic: The Gathering, its card names and card images are property of Wizards of the Coast LLC. Card data and images are provided by [Scryfall](https://scryfall.com).
+
 ## Reporting a problem
 
 Email the address above and include: app version 1.0 (1), your iOS version, your device model, and the steps to reproduce the problem. A screenshot helps.

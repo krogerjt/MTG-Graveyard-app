@@ -1,47 +1,47 @@
 {
   "templateVersion": 1,
-  "note": "Every [[REQUIRES USER INPUT] value must be written by you. The agent never invents legal text, URLs, pricing, copyright owners or Apple account details.",
+  "note": "Values marked [[REQUIRES USER INPUT]] must be written by you. The agent never invents legal text, URLs, pricing, copyright owners or Apple account details.",
   "app": {
-    "name": "[[REQUIRES USER INPUT: App Store name, max 30 characters]]",
-    "subtitle": "[[REQUIRES USER INPUT: subtitle, max 30 characters]]",
-    "primaryCategory": "[[REQUIRES USER INPUT: App Store primary category]]",
+    "name": "Graveyard Tracker",
+    "subtitle": "Track your deck's graveyard",
+    "primaryCategory": "Utilities",
     "bundleId": "com.graveyardtracker.app",
     "marketingVersion": "1.0"
   },
   "listing": {
-    "description": "[[REQUIRES USER INPUT: App Store description]]",
-    "keywords": "[[REQUIRES USER INPUT: keywords, comma separated, max 100 characters]]",
-    "promotionalText": "[[REQUIRES USER INPUT: promotional text (optional)]]",
-    "whatsNew": "[[REQUIRES USER INPUT: release notes for this version]]",
-    "copyright": "[[REQUIRES USER INPUT: copyright holder and year, for example '2026 Your Name or Company']]"
+    "description": "Graveyard Tracker keeps count of your cards during a game of Magic: The Gathering, so you always know what is in your library, graveyard and exile.\n\nImport your decklist, then touch and hold any card to move it to the graveyard, exile or back to your library. Made a mistake? Undo your last move.\n\n• Import a decklist by pasting one card per line, such as 1 Sol Ring\n• Card details and artwork are downloaded once and kept on your device, so decks work offline after import\n• Browse your graveyard and sort it by newest, name or mana value, or filter it by card type\n• See at a glance how many card types are in your graveyard for Delirium\n• Track statistics about what is in your graveyard\n• Rename, edit and reset your decks between games\n\nPrivate by design: no account, no ads and no tracking. Your decks stay on your device. Card names are looked up using the Scryfall card database.\n\nGraveyard Tracker is unofficial and is not affiliated with or endorsed by Wizards of the Coast. Magic: The Gathering, its card names and card images are property of Wizards of the Coast LLC. Card data and images are provided by Scryfall.",
+    "keywords": "graveyard,deck,tracker,commander,delirium,library,exile,card game,counter,undo,decklist,stats",
+    "promotionalText": "",
+    "whatsNew": "Initial release.",
+    "copyright": "2026 Jacob Kroger"
   },
   "urls": {
-    "supportUrl": "[[REQUIRES USER INPUT: public support URL (https)]]",
-    "privacyPolicyUrl": "[[REQUIRES USER INPUT: public privacy policy URL (https)]]",
+    "supportUrl": "https://krogerjt.github.io/MTG-Graveyard-app/support",
+    "privacyPolicyUrl": "https://krogerjt.github.io/MTG-Graveyard-app/privacy",
     "marketingUrl": ""
   },
   "pricing": {
-    "model": "[[REQUIRES USER INPUT: free, paid or in-app purchases; price tier is set in App Store Connect]]"
+    "model": "free"
   },
   "ageRating": {
-    "note": "[[REQUIRES USER INPUT: answer the age-rating questionnaire in App Store Connect and record the result]]"
+    "note": "[[REQUIRES USER INPUT: answer the age-rating questionnaire in App Store Connect and record the result. Card artwork can contain fantasy violence, so answer that question yourself.]]"
   },
   "review": {
     "contact": {
-      "firstName": "[[REQUIRES USER INPUT: review contact first name]]",
-      "lastName": "[[REQUIRES USER INPUT: last name]]",
-      "email": "[[REQUIRES USER INPUT: email]]",
-      "phone": "[[REQUIRES USER INPUT: phone]]"
+      "firstName": "Jacob",
+      "lastName": "Kroger",
+      "email": "jakekroger@gmail.com",
+      "phone": "[[REQUIRES USER INPUT: phone number for App Review, with country code]]"
     },
     "demoAccount": {
-      "required": "[[REQUIRES USER INPUT: true or false]]",
+      "required": "false",
       "username": "",
       "password": "(never store here; enter in App Store Connect)"
     },
-    "notes": "[[REQUIRES USER INPUT: anything Apple's reviewer needs to use or test the app]]"
+    "notes": "No account or sign-in is needed. Tap Import, enter any deck name, paste a decklist with one card per line (sample: 1 Sol Ring / 1 Lightning Bolt / 1 Counterspell / 1 Llanowar Elves / 1 Swords to Plowshares / 1 Command Tower), then tap Import. An internet connection is required for import because card data and images come from the Scryfall API (api.scryfall.com). Open the deck, touch and hold a card to move it to the graveyard, then see the Graveyard and Stats tabs. No special hardware or region is required."
   },
   "exportCompliance": {
-    "usesNonExemptEncryption": "[[REQUIRES USER INPUT: true or false; see release/export-compliance.md]]"
+    "usesNonExemptEncryption": "false"
   },
   "privacyNutritionLabel": {
     "status": "unconfirmed-suggestions",
