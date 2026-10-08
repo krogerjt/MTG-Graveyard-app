@@ -22,7 +22,7 @@ Importing looks up each card online, so you need an internet connection. If any 
 Tap a card in the Cards list to move it to the graveyard, and tap it again to send it back. For more options, touch and hold a card to open its menu, then choose **Move to graveyard**, **Exile** or **Return to library**. Use **Undo** in that menu, or in the toolbar menu, to reverse your last move.
 
 ### How do I sort or filter my graveyard?
-Open the **Graveyard** tab and use the sort and filter button to sort by newest, name or mana value, or to show a single card type. The Delirium indicator shows how many different card types are in your graveyard.
+Open the **Graveyard** tab. Type in the search field to find a card by name, use the sort menu to order by newest, name or mana value, and use the type menu to show a single card type. The Delirium indicator shows how many different card types are in your graveyard.
 
 ### Can I edit a deck, rename it or start a new game?
 Yes. Open the deck and use the toolbar menu for **Rename**, **Edit deck** and **Reset game**. Note that saving deck edits replaces the card list and resets every card to your library.
