@@ -1,3 +1,8 @@
+---
+layout: default
+title: Graveyard Tracker Support
+---
+
 # Support — Graveyard Tracker
 
 Graveyard Tracker helps you track which cards are in your library, graveyard and exile during a game of Magic: The Gathering.
