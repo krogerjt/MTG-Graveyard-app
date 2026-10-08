@@ -1,3 +1,8 @@
+---
+layout: default
+title: Graveyard Tracker Privacy Policy
+---
+
 # Privacy Policy — GraveyardTracker
 
 **Effective date:** 10/07/2026
