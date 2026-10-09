@@ -76,19 +76,26 @@ final class ScreenshotTests: XCTestCase {
 
         let nameField = app.textFields["Deck name"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 10))
-        nameField.tap()
-        nameField.typeText(deckName)
-
-        let commanderField = app.textFields["Commander (optional)"]
-        commanderField.tap()
-        commanderField.typeText(commanderName)
-
-        let editor = app.textViews.firstMatch
-        editor.tap()
-        editor.typeText(decklist)
+        enter(deckName, into: nameField)
+        enter(commanderName, into: app.textFields["Commander (optional)"])
+        enter(decklist, into: app.textViews.firstMatch)
 
         app.navigationBars["Import Deck"].buttons["Import"].tap()
         XCTAssertTrue(app.staticTexts[deckName].firstMatch.waitForExistence(timeout: 180), "The deck did not import. Check the internet connection.")
+    }
+
+    /// Taps a field until it really has keyboard focus (a fresh simulator can drop the first tap), then types.
+    @MainActor
+    private func enter(_ text: String, into element: XCUIElement) {
+        for _ in 0..<4 {
+            element.tap()
+            let focused = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hasKeyboardFocus == true"), object: element)
+            if XCTWaiter().wait(for: [focused], timeout: 5) == .completed {
+                element.typeText(text)
+                return
+            }
+        }
+        XCTFail("Could not focus a text field to enter \"\(text.prefix(24))\".")
     }
 
     /// Selects a tab and fails with a description of the screen if the app ends up somewhere unexpected.
