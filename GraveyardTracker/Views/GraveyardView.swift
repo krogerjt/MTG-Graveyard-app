@@ -19,7 +19,15 @@ struct GraveyardView: View {
 
 struct CardRow: View {
     @ObservedObject var item: DeckCardEntity
-    var body: some View { HStack(spacing: 12) { CardArtwork(card: item.card).frame(width: 48, height: 67).clipShape(RoundedRectangle(cornerRadius: 4)); VStack(alignment: .leading, spacing: 3) { Text(item.card.name).font(.headline); Text(item.card.typeLine).font(.caption).foregroundStyle(.secondary).lineLimit(1) }; Spacer(); Text(item.card.manaValue.formatted()).font(.caption.monospacedDigit()).padding(6).background(.thinMaterial, in: Circle()) } }
+    // Check the entry before touching `item.card`: a deleted entry's nonoptional card relationship is not safe to read.
+    var body: some View { if item.isDeletedOrDetached { EmptyView() } else { row } }
+    private var row: some View { HStack(spacing: 12) { CardArtwork(card: item.card).frame(width: 48, height: 67).clipShape(RoundedRectangle(cornerRadius: 4)); VStack(alignment: .leading, spacing: 3) { Text(item.card.name).font(.headline); Text(item.card.typeLine).font(.caption).foregroundStyle(.secondary).lineLimit(1) }; Spacer(); Text(item.card.manaValue.formatted()).font(.caption.monospacedDigit()).padding(6).background(.thinMaterial, in: Circle()) } }
+}
+
+extension DeckCardEntity {
+    /// True once the entry has been deleted (even after the deletion is saved) or removed from its context.
+    /// Views must check this before reading `card`.
+    var isDeletedOrDetached: Bool { isDeleted || managedObjectContext == nil }
 }
 
 private struct DeliriumBanner: View {
