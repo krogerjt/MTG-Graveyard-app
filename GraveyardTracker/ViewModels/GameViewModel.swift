@@ -28,9 +28,15 @@ final class GameViewModel: ObservableObject {
             contextObserver = NotificationCenter.default.addObserver(
                 forName: .NSManagedObjectContextObjectsDidChange,
                 object: context,
-                queue: .main
+                queue: nil
             ) { [weak self] _ in
-                Task { @MainActor in self?.invalidateSnapshot(notify: true) }
+                // A nil queue runs this block synchronously on the posting thread, before the context
+                // change returns. The view context posts on main, so invalidate inline.
+                if Thread.isMainThread {
+                    MainActor.assumeIsolated { self?.invalidateSnapshot(notify: true) }
+                } else {
+                    Task { @MainActor in self?.invalidateSnapshot(notify: true) }
+                }
             }
         }
     }
@@ -55,7 +61,9 @@ final class GameViewModel: ObservableObject {
 
     private var snapshot: DeckSnapshot {
         if let cachedSnapshot { return cachedSnapshot }
-        let sortedCards = deck.cards.sorted { $0.card.name < $1.card.name }
+        // Exclude deleted entries before touching `card`, whose relationship is nullified on delete.
+        let liveCards = deck.cards.filter { !$0.isDeleted }
+        let sortedCards = liveCards.sorted { $0.card.name < $1.card.name }
         var library: [DeckCardEntity] = []
         var graveyard: [DeckCardEntity] = []
         var exile: [DeckCardEntity] = []

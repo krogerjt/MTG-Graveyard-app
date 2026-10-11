@@ -34,6 +34,61 @@ final class GameViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testReplacingDeckCardsRefreshesCachedListsImmediately() throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        let deck = DeckEntity(context: context)
+        deck.id = UUID(); deck.name = "Edit"; deck.createdDate = Date(); deck.updatedDate = Date()
+        func makeEntry(_ name: String, zone: Zone) -> DeckCardEntity {
+            let card = CardEntity(context: context)
+            card.id = UUID(); card.scryfallID = name; card.name = name
+            card.typeLine = "Creature"; card.manaValue = 2
+            let item = DeckCardEntity(context: context)
+            item.id = UUID(); item.deck = deck; item.card = card
+            item.zoneRaw = zone.rawValue; item.zoneChangedAt = Date()
+            return item
+        }
+        _ = makeEntry("Old Card", zone: .graveyard)
+        try context.save()
+
+        let model = GameViewModel(deck: deck)
+        XCTAssertEqual(model.allCards.map(\.card.name), ["Old Card"])
+        XCTAssertEqual(model.graveyardCount, 1)
+
+        deck.cards.forEach(context.delete)
+        _ = makeEntry("New Card", zone: .library)
+        try context.save()
+
+        XCTAssertEqual(model.allCards.map(\.card.name), ["New Card"])
+        XCTAssertEqual(model.library.map(\.card.name), ["New Card"])
+        XCTAssertTrue(model.graveyard.isEmpty)
+        XCTAssertEqual(model.graveyardCount, 0)
+        XCTAssertTrue(model.typeCounts.isEmpty)
+    }
+
+    @MainActor
+    func testPendingDeletedEntriesAreSkippedBeforeSave() throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        let deck = DeckEntity(context: context)
+        deck.id = UUID(); deck.name = "Pending"; deck.createdDate = Date(); deck.updatedDate = Date()
+        let card = CardEntity(context: context)
+        card.id = UUID(); card.scryfallID = "pending"; card.name = "Pending Card"
+        card.typeLine = "Creature"; card.manaValue = 1
+        let item = DeckCardEntity(context: context)
+        item.id = UUID(); item.deck = deck; item.card = card
+        item.zoneRaw = Zone.library.rawValue; item.zoneChangedAt = Date()
+        try context.save()
+
+        let model = GameViewModel(deck: deck)
+        XCTAssertEqual(model.allCards.count, 1)
+        context.delete(item)
+        context.processPendingChanges()
+        XCTAssertTrue(model.allCards.isEmpty)
+        XCTAssertTrue(model.library.isEmpty)
+    }
+
+    @MainActor
     func testLargeDeckDerivedListsAndStats() throws {
         let persistence = PersistenceController(inMemory: true)
         let context = persistence.container.viewContext
