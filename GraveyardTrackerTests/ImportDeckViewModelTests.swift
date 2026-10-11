@@ -209,6 +209,49 @@ final class ImportDeckViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testSuccessfulEditReplacesDeckCardsAndPreservesDeckIdentity() async throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        let existing = try makeSavedDeck(in: context)
+        let originalID = existing.id
+        let originalCreatedDate = existing.createdDate
+        let originalUpdatedDate = existing.updatedDate
+        let solRing = fixtureCard(id: "sol-ring", name: "Sol Ring")
+        let signet = fixtureCard(id: "arcane-signet", name: "Arcane Signet")
+        let model = ImportDeckViewModel(
+            cardLookup: FakeCardLookupService(found: ["sol ring": solRing, "arcane signet": signet]),
+            artworkService: FakeArtworkService(data: Data([1, 2, 3]))
+        )
+        model.name = "Edited Deck"
+        model.commander = "Edited Commander"
+        model.decklist = "2 Sol Ring\n1 Arcane Signet"
+
+        let imported = await model.importDeck(into: context, replacing: existing)
+
+        XCTAssertTrue(imported, model.errorMessage ?? "Edit should succeed")
+        XCTAssertTrue(model.failures.isEmpty)
+
+        // Reset and refetch so these assertions inspect saved state, not just registered objects.
+        context.reset()
+        let decks = try context.fetch(DeckEntity.request())
+        XCTAssertEqual(decks.count, 1, "Editing must update the deck rather than create another one")
+        let deck = try XCTUnwrap(decks.first)
+        XCTAssertEqual(deck.id, originalID)
+        XCTAssertEqual(deck.createdDate, originalCreatedDate)
+        XCTAssertGreaterThan(deck.updatedDate, originalUpdatedDate)
+        XCTAssertEqual(deck.name, "Edited Deck")
+        XCTAssertEqual(deck.commander, "Edited Commander")
+
+        let deckCards = try context.fetch(NSFetchRequest<DeckCardEntity>(entityName: "DeckCardEntity"))
+        XCTAssertEqual(deckCards.count, 3, "The original entry should be replaced, not kept alongside new ones")
+        XCTAssertEqual(deck.cards.count, 3)
+        XCTAssertEqual(deck.cards.map { $0.card.name }.sorted(), ["Arcane Signet", "Sol Ring", "Sol Ring"])
+        XCTAssertFalse(deck.cards.contains { $0.card.scryfallID == "original-card" })
+        XCTAssertTrue(deck.cards.allSatisfy { $0.zone == .library })
+        XCTAssertTrue(deckCards.allSatisfy { $0.deck == deck })
+    }
+
+    @MainActor
     private func makeSavedDeck(in context: NSManagedObjectContext) throws -> DeckEntity {
         let deck = DeckEntity(context: context)
         deck.id = UUID()
