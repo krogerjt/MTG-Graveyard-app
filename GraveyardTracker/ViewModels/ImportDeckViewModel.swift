@@ -21,6 +21,15 @@ final class ImportDeckViewModel: ObservableObject {
         self.artworkService = artworkService
     }
 
+    /// Appends a scanned card as its own "1 Name" line. Repeated names stay as separate lines;
+    /// the import groups copies of the same card itself.
+    func appendScannedCard(_ name: String) {
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        let existing = decklist.trimmingCharacters(in: .newlines)
+        decklist = (existing.isEmpty ? "" : existing + "\n") + "1 " + name
+    }
+
     func importDeck(into context: NSManagedObjectContext, replacing existing: DeckEntity? = nil) async -> Bool {
         isImporting = true; progress = 0; failures = []; errorMessage = nil
         defer { isImporting = false }
