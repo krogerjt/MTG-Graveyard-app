@@ -22,6 +22,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Graveyard Tracker
         INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_NSCameraUsageDescription: Graveyard Tracker uses the camera to read card names on your device so you can add them to a decklist.
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait

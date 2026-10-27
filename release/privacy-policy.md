@@ -6,7 +6,7 @@
 
 ## Summary
 
-Graveyard Tracker does not require an account and does not collect personal information. The publisher does not receive, store or have access to your decks or any other data from the app. The app contains no advertising, analytics, crash-reporting or tracking tools, and it does not use your location, camera, microphone, photos or contacts.
+Graveyard Tracker does not require an account and does not collect personal information. The publisher does not receive, store or have access to your decks or any other data from the app. The app contains no advertising, analytics, crash-reporting or tracking tools, and it does not use your location, microphone, photos or contacts. If you choose to scan a card while importing a deck, the app uses the camera to read the card name on your device. Camera images are not saved or sent anywhere; only the card name you add to your decklist is used.
 
 ## Data stored on your device
 

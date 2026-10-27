@@ -58,6 +58,40 @@ final class ImportDeckViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testDuplicateLinesImportAsSeparateCopiesOfOneCard() async throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        let probe = ImportServiceProbe()
+        let model = ImportDeckViewModel(
+            cardLookup: FakeCardLookupService(found: ["forest": fixtureCard(id: "forest", name: "Forest")], probe: probe),
+            artworkService: FakeArtworkService(data: Data([1]), probe: probe)
+        )
+        model.decklist = "1 Forest\n1 Forest\n1 forest"
+
+        let imported = await model.importDeck(into: context)
+
+        XCTAssertTrue(imported, model.errorMessage ?? "Import should succeed")
+        let cards = try context.fetch(NSFetchRequest<CardEntity>(entityName: "CardEntity"))
+        let deckCards = try context.fetch(NSFetchRequest<DeckCardEntity>(entityName: "DeckCardEntity"))
+        XCTAssertEqual(cards.count, 1)
+        XCTAssertEqual(deckCards.count, 3)
+        XCTAssertEqual(probe.requestedNameCount, 1, "Repeated lines should be looked up once")
+    }
+
+    @MainActor
+    func testScannedCardsAppendAsSeparateLines() {
+        let model = ImportDeckViewModel(cardLookup: FakeCardLookupService(found: [:]), artworkService: FakeArtworkService())
+        model.appendScannedCard("Forest")
+        model.appendScannedCard(" Forest ")
+        model.appendScannedCard("   ")
+        XCTAssertEqual(model.decklist, "1 Forest\n1 Forest")
+
+        model.decklist = "1 Sol Ring\n\n"
+        model.appendScannedCard("Island")
+        XCTAssertEqual(model.decklist, "1 Sol Ring\n1 Island")
+    }
+
+    @MainActor
     func testImportAtCardLimitPerformance() async throws {
         let runs = 5
         var elapsed = 0.0
