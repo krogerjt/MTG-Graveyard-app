@@ -14,6 +14,8 @@ final class GameViewModel: ObservableObject {
     }
     let deck: DeckEntity
     @Published var search = ""; @Published var sort: GraveyardSort = .newest; @Published var filter: CardKind?
+    /// Name search for the Cards tab, kept separate from the graveyard search so each tab remembers its own query.
+    @Published var cardSearch = ""
     @Published var errorMessage: String?
     private var history: [[(DeckCardEntity, Zone, Date)]] = []
     private var cachedSnapshot: DeckSnapshot?
@@ -48,6 +50,12 @@ final class GameViewModel: ObservableObject {
     }
 
     var allCards: [DeckCardEntity] { snapshot.sortedCards }
+    /// Every deck card whose name matches `cardSearch`, still in alphabetical order.
+    var filteredCards: [DeckCardEntity] {
+        let query = cardSearch.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return snapshot.sortedCards }
+        return snapshot.sortedCards.filter { $0.card.name.localizedCaseInsensitiveContains(query) }
+    }
     var library: [DeckCardEntity] { snapshot.library }
     var graveyard: [DeckCardEntity] {
         var result = snapshot.graveyard.filter { (search.isEmpty || $0.card.name.localizedCaseInsensitiveContains(search)) && (filter == nil || $0.card.kinds.contains(filter!)) }

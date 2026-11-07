@@ -117,4 +117,29 @@ final class GameViewModelTests: XCTestCase {
             XCTAssertEqual(model.deliriumTypes.count, 2)
         }
     }
+
+    @MainActor
+    func testCardSearchFiltersDeckCardsByNameWithoutTouchingGraveyardSearch() throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        let deck = DeckEntity(context: context)
+        deck.id = UUID(); deck.name = "Test"; deck.createdDate = Date(); deck.updatedDate = Date()
+        for name in ["Sol Ring", "Lightning Bolt", "Solemn Simulacrum"] {
+            let card = CardEntity(context: context)
+            card.id = UUID(); card.scryfallID = name; card.name = name
+            card.typeLine = "Artifact"; card.manaValue = 1
+            let item = DeckCardEntity(context: context)
+            item.id = UUID(); item.deck = deck; item.card = card
+            item.zoneRaw = Zone.library.rawValue; item.zoneChangedAt = Date()
+        }
+        try context.save()
+        let model = GameViewModel(deck: deck)
+        XCTAssertEqual(model.filteredCards.count, 3)
+        model.cardSearch = "  sol "
+        XCTAssertEqual(model.filteredCards.map(\.card.name), ["Sol Ring", "Solemn Simulacrum"])
+        XCTAssertEqual(model.search, "")
+        XCTAssertEqual(model.allCards.count, 3)
+        model.cardSearch = "nothing"
+        XCTAssertTrue(model.filteredCards.isEmpty)
+    }
 }

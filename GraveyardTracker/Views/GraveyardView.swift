@@ -41,14 +41,7 @@ private struct GraveyardControls: View {
     @ObservedObject var model: GameViewModel
     var body: some View {
         VStack(spacing: 8) {
-            HStack {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField("Search card names", text: $model.search).textInputAutocapitalization(.never).autocorrectionDisabled()
-                if !model.search.isEmpty {
-                    Button { model.search = "" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain).foregroundStyle(.secondary).accessibilityLabel("Clear search")
-                }
-            }
-            .padding(10).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+            CardSearchField(text: $model.search)
             HStack {
                 Picker("Sort", selection: $model.sort) { ForEach(GraveyardSort.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.menu)
                 Spacer()
@@ -56,5 +49,21 @@ private struct GraveyardControls: View {
             }
         }
         .padding(.horizontal).padding(.vertical, 8)
+    }
+}
+
+/// Inline name search field. GameView's tabs can't use `.searchable` because the navigation bar belongs to the deck list stack.
+struct CardSearchField: View {
+    @Binding var text: String
+    var prompt = "Search card names"
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+            TextField(prompt, text: $text).textInputAutocapitalization(.never).autocorrectionDisabled().submitLabel(.search)
+            if !text.isEmpty {
+                Button { text = "" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain).foregroundStyle(.secondary).accessibilityLabel("Clear search")
+            }
+        }
+        .padding(10).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
     }
 }
