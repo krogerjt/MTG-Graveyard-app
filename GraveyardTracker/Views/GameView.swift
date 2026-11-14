@@ -23,22 +23,30 @@ struct GameView: View {
         .alert("Rename Deck", isPresented: $editingName) { TextField("Name", text: $draftName); Button("Cancel", role: .cancel) {}; Button("Save") { model.deck.name = draftName; model.deck.updatedDate = Date(); do { try PersistenceController.save(context); model.objectWillChange.send() } catch { context.rollback(); model.errorMessage = error.localizedDescription } } }
     }
     private var allCards: some View {
-        List {
-            Section { zoneSummary }
-            Section("All cards · tap to toggle graveyard") {
-                ForEach(model.allCards) { item in
-                    HStack {
-                        Button { model.toggle(item, context: context) } label: {
-                            VStack(alignment: .leading) {
-                                CardRow(item: item)
-                                Text(item.zone.title).font(.caption).foregroundStyle(.secondary)
-                            }.contentShape(Rectangle())
-                        }.buttonStyle(.plain)
-                        Button { selectedCard = item } label: { Image(systemName: "info.circle") }
-                            .buttonStyle(.borderless).accessibilityLabel("Card details")
-                    }.contextMenu { zoneMenu(item) }
+        let cards = model.filteredCards
+        return VStack(spacing: 0) {
+            CardSearchField(text: $model.cardSearch, prompt: "Search deck").padding(.horizontal).padding(.vertical, 8)
+            List {
+                Section { zoneSummary }
+                Section("All cards · tap to toggle graveyard") {
+                    ForEach(cards) { item in
+                        HStack {
+                            Button { model.toggle(item, context: context) } label: {
+                                VStack(alignment: .leading) {
+                                    CardRow(item: item)
+                                    Text(item.zone.title).font(.caption).foregroundStyle(.secondary)
+                                }.contentShape(Rectangle())
+                            }.buttonStyle(.plain)
+                            Button { selectedCard = item } label: { Image(systemName: "info.circle") }
+                                .buttonStyle(.borderless).accessibilityLabel("Card details")
+                        }.contextMenu { zoneMenu(item) }
+                    }
+                    if cards.isEmpty && !model.cardSearch.isEmpty {
+                        Text("No cards in this deck match “\(model.cardSearch)”.").foregroundStyle(.secondary)
+                    }
                 }
             }
+            .scrollDismissesKeyboard(.immediately)
         }
     }
     private var zoneSummary: some View { HStack { Label("\(model.graveyardCount)", systemImage: "cross.fill"); Spacer(); Label("\(model.library.count)", systemImage: "rectangle.stack"); Spacer(); Label("\(model.exile.count)", systemImage: "flame") }.foregroundStyle(.secondary) }
